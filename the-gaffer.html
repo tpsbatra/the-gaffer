@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Gaffer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --panel:#141414; --panel2:#1c1c1c; --border:#252525;
+  --accent:#e8f020; --accent2:#ff4d4d; --text:#f0f0f0; --muted:#5a5a5a;
+  --home:#e8f020; --away:#ff4d4d; --pitch:#2a5518; --pitch2:#306020;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow:hidden;}
+
+/* ── PASSWORD SCREEN ── */
+#pwdScreen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.pwd-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--accent);margin-bottom:4px;}
+.pwd-logo span{color:var(--text);}
+.pwd-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:36px;}
+.pwd-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px 32px;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:320px;}
+.pwd-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.pwd-input{background:var(--panel2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:22px;letter-spacing:6px;padding:12px 20px;text-align:center;width:100%;outline:none;transition:border-color .2s;}
+.pwd-input:focus{border-color:var(--accent);}
+.pwd-btn{background:var(--accent);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;padding:12px;width:100%;border-radius:6px;cursor:pointer;transition:all .2s;}
+.pwd-btn:hover{opacity:.85;}
+.pwd-error{font-size:11px;color:var(--accent2);font-family:'DM Mono',monospace;min-height:16px;}
+.pwd-shake{animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+
+/* ── PRE-MATCH SCREEN ── */
+#preMatch{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.pm-logo{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--accent);margin-bottom:4px;}
+.pm-logo span{color:var(--text);}
+.pm-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:2px;margin-bottom:40px;}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:640px;margin-bottom:32px;}
+.pm-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;}
+.pm-card-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.pm-opts{display:flex;gap:8px;flex-wrap:wrap;}
+.pm-opt{padding:8px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.pm-opt:hover{border-color:var(--accent);color:var(--accent);}
+.pm-opt.selected{background:rgba(232,240,32,.12);border-color:var(--accent);color:var(--accent);font-weight:600;}
+.pm-opt.selected-red{background:rgba(255,77,77,.12);border-color:var(--accent2);color:var(--accent2);font-weight:600;}
+.pm-gender{display:flex;gap:10px;}
+.pm-gender-btn{flex:1;padding:14px;border-radius:8px;border:2px solid var(--border);background:transparent;cursor:pointer;transition:all .2s;text-align:center;}
+.pm-gender-btn .icon{font-size:28px;display:block;margin-bottom:6px;}
+.pm-gender-btn .label{font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.pm-gender-btn.selected{border-color:var(--accent);background:rgba(232,240,32,.08);}
+.pm-gender-btn.selected .label{color:var(--accent);}
+.weather-opt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;}
+.weather-opt .wi{font-size:20px;}
+.weather-opt .wl{font-size:10px;}
+.pm-start{background:var(--accent);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;padding:16px 64px;border-radius:8px;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(232,240,32,.3);}
+.pm-start:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(232,240,32,.45);}
+.weather-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:6px;margin-top:8px;font-size:11px;color:var(--muted);}
+
+/* ── MAIN APP ── */
+#mainApp{display:none;flex-direction:column;height:100vh;}
+#mainApp.active{display:flex;}
+header{display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--accent);}
+.logo span{color:var(--text);}
+.header-center{display:flex;align-items:center;gap:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.header-badge{padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:10px;display:flex;align-items:center;gap:5px;}
+.stage-tabs{display:flex;gap:5px;}
+.stage-tab{padding:5px 12px;border-radius:4px;font-size:11px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s;}
+.stage-tab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+.stage-tab:disabled{opacity:.3;cursor:not-allowed;}
+
+.app{display:grid;grid-template-columns:268px 1fr 288px;flex:1;overflow:hidden;}
+
+/* LEFT */
+.left-panel{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.panel-title{padding:10px 14px;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:var(--muted);border-bottom:1px solid var(--border);text-transform:uppercase;flex-shrink:0;}
+.formation-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:10px;}
+.formation-btn{padding:8px 3px;border-radius:4px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;text-align:center;transition:all .15s;}
+.formation-btn:hover{border-color:var(--accent);color:var(--accent);}
+.formation-btn.selected{background:var(--accent);color:#000;border-color:var(--accent);font-weight:700;}
+.tactics-section{padding:0 10px 10px;flex-shrink:0;}
+.tactic-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;margin-top:10px;}
+.tactic-opts{display:flex;gap:4px;flex-wrap:wrap;}
+.tactic-btn{padding:4px 9px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:all .15s;}
+.tactic-btn:hover{border-color:var(--accent);color:var(--accent);}
+.tactic-btn.selected{background:rgba(232,240,32,.1);border-color:var(--accent);color:var(--accent);}
+.squad-section{flex:1;overflow-y:auto;border-top:1px solid var(--border);}
+.squad-section::-webkit-scrollbar{width:3px;}
+.squad-section::-webkit-scrollbar-thumb{background:var(--border);}
+.player-row{display:flex;align-items:center;gap:7px;padding:7px 12px;border-bottom:1px solid var(--border);transition:background .12s;}
+.player-row.on-pitch{background:rgba(232,240,32,.05);}
+.player-num{width:20px;height:20px;border-radius:3px;background:var(--panel2);font-family:'DM Mono',monospace;font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--muted);flex-shrink:0;}
+.player-row.on-pitch .player-num{background:var(--accent);color:#000;}
+.player-info{flex:1;min-width:0;}
+.player-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-pos{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
+.player-rating{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
+
+/* CENTER */
+.center{background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.pitch-wrap{position:relative;width:308px;height:472px;}
+.pitch-svg{position:absolute;inset:0;width:100%;height:100%;}
+
+/* SILHOUETTES */
+.player-token{position:absolute;transform:translate(-50%,-50%);width:32px;height:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;cursor:default;}
+.token-svg{width:28px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));}
+.token-label{font-family:'Bebas Neue',sans-serif;font-size:9px;line-height:1;margin-top:1px;text-shadow:0 1px 3px rgba(0,0,0,.8);}
+.token-home .token-label{color:#000;}
+.token-away .token-label{color:#fff;}
+
+/* BALL */
+#ballEl{position:absolute;width:14px;height:14px;z-index:20;transform:translate(-50%,-50%);pointer-events:none;transition:left .45s cubic-bezier(.4,0,.2,1),top .45s cubic-bezier(.4,0,.2,1);}
+.ball-svg{width:14px;height:14px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));}
+
+/* SIM CONTROLS */
+.sim-controls{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.match-clock{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);min-height:16px;}
+.sim-btn{background:var(--accent);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:3px;padding:11px 40px;border-radius:6px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(232,240,32,.28);}
+.sim-btn:hover{transform:translateY(-2px);box-shadow:0 7px 24px rgba(232,240,32,.42);}
+.sim-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.weather-display{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;}
+
+/* RIGHT PANEL */
+.right-panel{background:var(--panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.rp-view{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .38s ease,opacity .38s ease;}
+.rp-view.hidden{transform:translateX(100%);opacity:0;pointer-events:none;}
+.rp-view.active{transform:translateX(0);opacity:1;pointer-events:all;}
+
+.scoreboard{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.score-team{font-size:10px;color:var(--muted);text-align:center;}
+.score-team strong{display:block;font-size:12px;color:var(--text);margin-bottom:2px;}
+.score-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--text);display:flex;gap:5px;align-items:center;}
+.score-sep{color:var(--muted);font-size:22px;}
+.commentary-feed{flex:1;overflow-y:auto;padding:6px 12px;}
+.commentary-feed::-webkit-scrollbar{width:3px;}
+.commentary-feed::-webkit-scrollbar-thumb{background:var(--border);}
+.commentary-item{display:flex;gap:7px;padding:6px 0;border-bottom:1px solid var(--border);animation:fadeSlide .28s ease;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.c-time{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);min-width:26px;padding-top:2px;}
+.c-text{font-size:11px;line-height:1.5;}
+.c-text.goal{color:var(--accent);font-weight:600;}
+.c-text.danger{color:var(--accent2);}
+.c-text.info{color:var(--muted);font-style:italic;}
+.stats-section{padding:10px 12px;border-top:1px solid var(--border);flex-shrink:0;}
+.stat-row{margin-bottom:6px;}
+.stat-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:2px;font-family:'DM Mono',monospace;}
+.stat-bar{height:3px;background:var(--border);border-radius:2px;display:flex;overflow:hidden;}
+.stat-home{background:var(--home);transition:width .8s ease;}
+.stat-away{background:var(--away);transition:width .8s ease;}
+.empty-commentary{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center;padding:20px;}
+.empty-commentary .big{font-family:'Bebas Neue',sans-serif;font-size:40px;opacity:.1;letter-spacing:4px;}
+.empty-commentary p{font-size:11px;margin-top:8px;line-height:1.6;}
+
+/* HALFTIME OVERLAY */
+.ht-overlay{position:absolute;inset:0;background:rgba(6,6,6,.97);display:flex;flex-direction:column;z-index:200;opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;padding:18px 18px 24px;}
+.ht-overlay::-webkit-scrollbar{width:3px;}
+.ht-overlay::-webkit-scrollbar-thumb{background:var(--border);}
+.ht-overlay.show{opacity:1;pointer-events:all;}
+.ht-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:5px;color:var(--accent);}
+.ht-score{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;margin-top:2px;}
+.ht-rec{background:rgba(232,240,32,.06);border:1px solid rgba(232,240,32,.2);border-radius:7px;padding:12px;margin-bottom:2px;}
+.ht-rec-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.ht-rec-text{font-size:11px;line-height:1.75;color:var(--text);}
+.ht-section{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:12px 0 6px;}
+.ht-opts{display:flex;gap:5px;flex-wrap:wrap;}
+.ht-opt{padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.ht-opt:hover{border-color:var(--accent);color:var(--accent);}
+.ht-opt.selected{background:rgba(232,240,32,.1);border-color:var(--accent);color:var(--accent);}
+.ht-opt.rec{border-color:rgba(232,240,32,.4);color:rgba(232,240,32,.6);}
+
+/* SUBS */
+.subs-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;}
+.sub-slot{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:8px;cursor:pointer;transition:all .15s;}
+.sub-slot:hover{border-color:var(--accent);}
+.sub-slot.selected{border-color:var(--accent);background:rgba(232,240,32,.08);}
+.sub-slot .sn{font-size:11px;font-weight:500;}
+.sub-slot .sp{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
+.sub-slot .sr{font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;}
+.ht-resume{background:var(--accent);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:3px;padding:12px;width:100%;border-radius:6px;cursor:pointer;margin-top:14px;transition:all .2s;flex-shrink:0;}
+.ht-resume:hover{opacity:.85;}
+
+/* ANALYSIS */
+.analysis-view{background:var(--panel);overflow-y:auto;display:flex;flex-direction:column;}
+.analysis-view::-webkit-scrollbar{width:3px;}
+.analysis-view::-webkit-scrollbar-thumb{background:var(--border);}
+.analysis-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);z-index:5;flex-shrink:0;}
+.analysis-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;color:var(--accent);}
+.analysis-back{font-size:10px;color:var(--muted);cursor:pointer;border:1px solid var(--border);padding:3px 9px;border-radius:4px;background:transparent;transition:all .15s;}
+.analysis-back:hover{color:var(--text);border-color:var(--text);}
+.analysis-body{padding:12px 14px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;}
+
+.card{background:var(--panel2);border-radius:7px;padding:12px;border:1px solid var(--border);}
+.card.accent-border{border-color:rgba(232,240,32,.22);}
+.card-title{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.card.accent-border .card-title{color:var(--accent);font-weight:600;}
+
+.overall-grade{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.grade-letter{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;}
+.grade-letter.A{color:#4ade80;}.grade-letter.B{color:#86efac;}.grade-letter.C{color:var(--accent);}.grade-letter.D{color:#fb923c;}.grade-letter.F{color:var(--accent2);}
+.grade-desc{font-size:11px;line-height:1.6;color:var(--muted);}
+.grade-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.grade-lbl{font-size:10px;color:var(--muted);width:82px;flex-shrink:0;}
+.grade-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.grade-bar-fill{height:100%;border-radius:2px;transition:width 1.1s ease;width:0;}
+.grade-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);width:24px;text-align:right;}
+
+.momentum-canvas-wrap canvas{width:100%;height:70px;display:block;border-radius:3px;}
+.momentum-legend{display:flex;gap:12px;margin-top:6px;}
+.m-leg{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted);}
+.m-dot{width:7px;height:7px;border-radius:50%;}
+
+.heatmap-pitch{width:100%;aspect-ratio:2/3;background:#2a5518;border-radius:4px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;border:1px solid rgba(255,255,255,.12);}
+.heat-zone{display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.07);transition:background .8s ease;}
+.heatmap-note{font-size:9px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;}
+
+.rating-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border);}
+.rating-row:last-child{border-bottom:none;}
+.r-num{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);width:18px;}
+.r-name{flex:1;font-size:11px;}
+.r-pos{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);width:30px;}
+.r-score{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;}
+.r-score.high{color:#4ade80;}.r-score.mid{color:var(--accent);}.r-score.low{color:var(--accent2);}
+
+.moment-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.moment-item:last-child{border-bottom:none;}
+.moment-min{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);min-width:28px;padding-top:1px;}
+.moment-text{font-size:11px;line-height:1.5;}
+
+.report-text{font-size:11px;line-height:1.85;color:var(--text);}
+.report-text p{margin-bottom:9px;}
+.report-text p:last-child{margin-bottom:0;}
+.report-next{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.report-next-lbl{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.report-tag{display:inline-block;padding:3px 9px;border-radius:20px;border:1px solid var(--border);font-size:10px;color:var(--muted);margin:2px 2px 0 0;}
+.report-tag.key{border-color:rgba(232,240,32,.4);color:var(--accent);}
+</style>
+</head>
+<body>
+<!-- PASSWORD SCREEN -->
+<div id="pwdScreen">
+  <div class="pwd-logo">The <span>Gaffer</span></div>
+  <div class="pwd-sub">FOOTBALL TACTICS SIMULATOR</div>
+  <div class="pwd-box">
+    <div class="pwd-label">Enter Access Code</div>
+    <input class="pwd-input" id="pwdInput" type="password" maxlength="6" placeholder="···" onkeydown="if(event.key==='Enter')checkPwd()"/>
+    <div class="pwd-error" id="pwdError"></div>
+    <button class="pwd-btn" onclick="checkPwd()">ENTER THE DUGOUT</button>
+  </div>
+</div>
+
+<!-- PRE-MATCH SCREEN -->
+<div id="preMatch">
+  <div class="pm-logo">The <span>Gaffer</span></div>
+  <div class="pm-sub">FOOTBALL TACTICS SIMULATOR</div>
+  <div class="pm-grid">
+    <!-- Gender -->
+    <div class="pm-card">
+      <div class="pm-card-title">Game Type</div>
+      <div class="pm-gender">
+        <div class="pm-gender-btn selected" id="genderMen" onclick="setGender('men')">
+          <span class="icon">👨</span><span class="label">Men's Game</span>
+        </div>
+        <div class="pm-gender-btn" id="genderWomen" onclick="setGender('women')">
+          <span class="icon">👩</span><span class="label">Women's Game</span>
+        </div>
+      </div>
+    </div>
+    <!-- Difficulty -->
+    <div class="pm-card">
+      <div class="pm-card-title">Opponent Difficulty</div>
+      <div class="pm-opts" id="diffOpts">
+        <button class="pm-opt selected" onclick="setDiff('Easy',this)">Easy</button>
+        <button class="pm-opt" onclick="setDiff('Medium',this)">Medium</button>
+        <button class="pm-opt" onclick="setDiff('Hard',this)">Hard</button>
+        <button class="pm-opt" onclick="setDiff('World Class',this)">World Class</button>
+      </div>
+    </div>
+    <!-- Weather -->
+    <div class="pm-card" style="grid-column:1/-1">
+      <div class="pm-card-title">Weather & Pitch Conditions</div>
+      <div class="pm-opts" id="weatherOpts">
+        <button class="pm-opt weather-opt selected" onclick="setWeather('Clear',this)"><span class="wi">☀️</span><span class="wl">Clear</span></button>
+        <button class="pm-opt weather-opt" onclick="setWeather('Overcast',this)"><span class="wi">☁️</span><span class="wl">Overcast</span></button>
+        <button class="pm-opt weather-opt" onclick="setWeather('Light Rain',this)"><span class="wi">🌦️</span><span class="wl">Light Rain</span></button>
+        <button class="pm-opt weather-opt" onclick="setWeather('Heavy Rain',this)"><span class="wi">🌧️</span><span class="wl">Heavy Rain</span></button>
+        <button class="pm-opt weather-opt" onclick="setWeather('Snow',this)"><span class="wi">❄️</span><span class="wl">Snow</span></button>
+        <button class="pm-opt weather-opt" onclick="setWeather('Wind',this)"><span class="wi">💨</span><span class="wl">Windy</span></button>
+      </div>
+      <div class="weather-bar" id="weatherEffect">☀️ &nbsp;Perfect conditions — no effect on play</div>
+    </div>
+  </div>
+  <button class="pm-start" onclick="startApp()">▶ ENTER THE DUGOUT</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp">
+  <header>
+    <div class="logo">The <span>Gaffer</span></div>
+    <div class="header-center">
+      <span class="header-badge" id="hbGender">👨 Men's</span>
+      <span class="header-badge" id="hbWeather">☀️ Clear</span>
+      <span class="header-badge" id="hbDiff">Easy</span>
+    </div>
+    <div class="stage-tabs">
+      <button class="stage-tab active" id="tabMatch" onclick="switchTab('match')">Match</button>
+      <button class="stage-tab" id="tabAnalysis" onclick="switchTab('analysis')" disabled>Analysis</button>
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- LEFT -->
+    <div class="left-panel">
+      <div class="panel-title">Formation</div>
+      <div class="formation-grid" id="formationGrid"></div>
+      <div class="tactics-section">
+        <div class="tactic-label">Style</div>
+        <div class="tactic-opts" id="styleOpts"></div>
+        <div class="tactic-label">Mentality</div>
+        <div class="tactic-opts" id="mentalityOpts"></div>
+        <div class="tactic-label">Pressing</div>
+        <div class="tactic-opts" id="pressingOpts"></div>
+      </div>
+      <div class="squad-section">
+        <div class="panel-title">Squad</div>
+        <div id="squadList"></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center">
+      <div class="pitch-wrap" id="pitchWrap">
+        <svg class="pitch-svg" viewBox="0 0 308 472" fill="none">
+          <rect width="308" height="472" fill="#2a5518"/>
+          <rect x="0" y="0" width="308" height="47" fill="#306020" opacity=".6"/>
+          <rect x="0" y="94" width="308" height="47" fill="#306020" opacity=".6"/>
+          <rect x="0" y="188" width="308" height="47" fill="#306020" opacity=".6"/>
+          <rect x="0" y="282" width="308" height="47" fill="#306020" opacity=".6"/>
+          <rect x="0" y="376" width="308" height="47" fill="#306020" opacity=".6"/>
+          <rect x="11" y="11" width="286" height="450" rx="2" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <line x1="11" y1="236" x2="297" y2="236" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+          <circle cx="154" cy="236" r="44" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <circle cx="154" cy="236" r="3" fill="rgba(255,255,255,.7)"/>
+          <rect x="71" y="11" width="166" height="65" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <rect x="108" y="11" width="92" height="23" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <circle cx="154" cy="52" r="2.5" fill="rgba(255,255,255,.7)"/>
+          <path d="M 117 76 A 40 40 0 0 1 191 76" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <rect x="71" y="396" width="166" height="65" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <rect x="108" y="438" width="92" height="23" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <circle cx="154" cy="420" r="2.5" fill="rgba(255,255,255,.7)"/>
+          <path d="M 117 396 A 40 40 0 0 0 191 396" stroke="rgba(255,255,255,.5)" stroke-width="1.5" fill="none"/>
+          <rect x="124" y="3" width="60" height="11" rx="1" stroke="rgba(255,255,255,.5)" stroke-width="1.2" fill="rgba(255,255,255,.07)"/>
+          <rect x="124" y="458" width="60" height="11" rx="1" stroke="rgba(255,255,255,.5)" stroke-width="1.2" fill="rgba(255,255,255,.07)"/>
+        </svg>
+        <!-- Ball -->
+        <div id="ballEl" style="left:154px;top:236px;">
+          <svg class="ball-svg" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="white" stroke="#ccc" stroke-width=".5"/><path d="M10 2 L13 7 L10 6 L7 7 Z" fill="#222"/><path d="M16 7 L13 7 L14 11 L18 10 Z" fill="#222"/><path d="M15 15 L14 11 L10 13 L11 17 Z" fill="#222"/><path d="M9 17 L10 13 L6 11 L5 15 Z" fill="#222"/><path d="M2 10 L6 11 L7 7 L4 7 Z" fill="#222"/></svg>
+        </div>
+        <div id="playerTokens"></div>
+      </div>
+      <div class="sim-controls">
+        <div class="weather-display" id="weatherDisplay"></div>
+        <div class="match-clock" id="matchClock"></div>
+        <button class="sim-btn" id="simBtn" onclick="startSimulation()">⚽ SIMULATE MATCH</button>
+      </div>
+
+      <!-- HALFTIME OVERLAY ON PITCH -->
+      <div class="ht-overlay" id="htOverlay">
+        <div class="ht-title">HALF TIME</div>
+        <div class="ht-score" id="htScore"></div>
+        <div class="ht-rec">
+          <div class="ht-rec-label">⚡ Gaffer's Recommendation</div>
+          <div class="ht-rec-text" id="htRecText"></div>
+        </div>
+        <div class="ht-section">Formation</div>
+        <div class="ht-opts" id="htFormation"></div>
+        <div class="ht-section">Mentality</div>
+        <div class="ht-opts" id="htMentality"></div>
+        <div class="ht-section">Pressing</div>
+        <div class="ht-opts" id="htPressing"></div>
+        <div class="ht-section">Substitutions (pick up to 2)</div>
+        <div class="subs-grid" id="subsGrid"></div>
+        <button class="ht-resume" onclick="resumeSecondHalf()">▶ START SECOND HALF</button>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <!-- MATCH -->
+      <div class="rp-view active" id="matchView">
+        <div class="scoreboard">
+          <div class="score-team"><strong id="homeTeamName">Your XI</strong>Home</div>
+          <div class="score-num"><span id="homeScore">0</span><span class="score-sep">–</span><span id="awayScore">0</span></div>
+          <div class="score-team"><strong id="awayTeamName">Rivals FC</strong>Away</div>
+        </div>
+        <div class="commentary-feed" id="commentaryFeed">
+          <div class="empty-commentary">
+            <div class="big">KICK OFF</div>
+            <p>Set your formation and tactics,<br>then simulate the match.</p>
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stat-row">
+            <div class="stat-labels"><span id="posH">—</span><span>Possession</span><span id="posA">—</span></div>
+            <div class="stat-bar"><div class="stat-home" id="posBarH" style="width:50%"></div><div class="stat-away" id="posBarA" style="width:50%"></div></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-labels"><span id="shotsH">—</span><span>Shots</span><span id="shotsA">—</span></div>
+            <div class="stat-bar"><div class="stat-home" id="shotsBarH" style="width:50%"></div><div class="stat-away" id="shotsBarA" style="width:50%"></div></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-labels"><span id="cornersH">—</span><span>Corners</span><span id="cornersA">—</span></div>
+            <div class="stat-bar"><div class="stat-home" id="cornersBarH" style="width:50%"></div><div class="stat-away" id="cornersBarA" style="width:50%"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- ANALYSIS -->
+      <div class="rp-view hidden" id="analysisView">
+        <div class="analysis-header">
+          <div class="analysis-title">Post-Match Report</div>
+          <button class="analysis-back" onclick="switchTab('match')">← Match</button>
+        </div>
+        <div class="analysis-body" id="analysisBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── FORMATIONS ────────────────────────────────────────────────────────────────
+const FORMATIONS={
+  '4-4-2':{lines:[1,4,4,2]},'4-3-3':{lines:[1,4,3,3]},'3-5-2':{lines:[1,3,5,2]},
+  '4-2-3-1':{lines:[1,4,2,3,1]},'5-3-2':{lines:[1,5,3,2]},'4-1-4-1':{lines:[1,4,1,4,1]},
+};
+
+// ── SQUADS ────────────────────────────────────────────────────────────────────
+const MEN_SQUAD=[
+  {num:1,name:'Martínez',pos:'GK',rating:78},{num:2,name:'Dubois',pos:'RB',rating:74},
+  {num:5,name:'Engel',pos:'CB',rating:76},{num:6,name:'Santos',pos:'CB',rating:77},
+  {num:3,name:'Kowalski',pos:'LB',rating:73},{num:4,name:'Reyes',pos:'CDM',rating:75},
+  {num:8,name:'Nkomo',pos:'CM',rating:79},{num:10,name:'Ferrara',pos:'CAM',rating:82},
+  {num:7,name:'Andersen',pos:'RW',rating:78},{num:11,name:'Diallo',pos:'LW',rating:80},
+  {num:9,name:'Volkov',pos:'ST',rating:83},{num:14,name:'Park',pos:'CM',rating:72},
+  {num:17,name:'Osei',pos:'ST',rating:70},{num:20,name:'Bianchi',pos:'RW',rating:69},
+  {num:22,name:'Lopes',pos:'LB',rating:71},
+];
+const WOMEN_SQUAD=[
+  {num:1,name:'Hansen',pos:'GK',rating:79},{num:2,name:'Müller',pos:'RB',rating:75},
+  {num:5,name:'Okonkwo',pos:'CB',rating:77},{num:6,name:'Pérez',pos:'CB',rating:78},
+  {num:3,name:'Yamada',pos:'LB',rating:74},{num:4,name:'Kante',pos:'CDM',rating:76},
+  {num:8,name:'Silva',pos:'CM',rating:80},{num:10,name:'Nguyen',pos:'CAM',rating:84},
+  {num:7,name:'Olsson',pos:'RW',rating:79},{num:11,name:'Adeyemi',pos:'LW',rating:81},
+  {num:9,name:'Rossi',pos:'ST',rating:85},{num:14,name:'Kim',pos:'CM',rating:73},
+  {num:17,name:'Bakker',pos:'ST',rating:71},{num:20,name:'Torres',pos:'RW',rating:70},
+  {num:22,name:'Frei',pos:'LB',rating:72},
+];
+const DIFF_STRENGTH={Easy:68,Medium:74,Hard:80,'World Class':87};
+const WEATHER_EFFECTS={
+  Clear:{label:'Perfect conditions — no effect',mod:0,emoji:'☀️'},
+  Overcast:{label:'Overcast — slight benefit for direct play',mod:0.2,emoji:'☁️'},
+  'Light Rain':{label:'Light rain — ground passes faster, slight slip risk',mod:-0.3,emoji:'🌦️'},
+  'Heavy Rain':{label:'Heavy rain — poor conditions, long balls less effective',mod:-0.8,emoji:'🌧️'},
+  Snow:{label:'Snow — unpredictable bounces, low scoring expected',mod:-1.2,emoji:'❄️'},
+  Wind:{label:'Windy — aerial balls risky, possession key',mod:-0.5,emoji:'💨'},
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let setup={gender:'men',difficulty:'Easy',weather:'Clear'};
+let state={
+  formation:'4-3-3',style:'Balanced',mentality:'Neutral',pressing:'Mid Block',
+  homeScore:0,awayScore:0,simulating:false,
+  htHomeScore:0,htAwayScore:0,htHomeChances:0,htAwayChances:0,
+  matchEvents:[],momentumData:[],playerRatings:{},finalStats:{},htRec:{},
+  selectedSubs:[],appliedSubs:[],
+};
+let SQUAD=MEN_SQUAD;
+let tokenEls=[], animFrame=null, animPhase='neutral';
+let animTargets=[], animStarts=[], animProg=0, animDur=60;
+let ballPos={x:154,y:236}, ballTarget={x:154,y:236};
+
+// ── PRE-MATCH ─────────────────────────────────────────────────────────────────
+function setGender(g){
+  setup.gender=g;
+  document.getElementById('genderMen').classList.toggle('selected',g==='men');
+  document.getElementById('genderWomen').classList.toggle('selected',g==='women');
+}
+function setDiff(d,btn){
+  setup.difficulty=d;
+  document.querySelectorAll('#diffOpts .pm-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function setWeather(w,btn){
+  setup.weather=w;
+  document.querySelectorAll('#weatherOpts .pm-opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('weatherEffect').textContent=WEATHER_EFFECTS[w].emoji+' '+WEATHER_EFFECTS[w].label;
+}
+function startApp(){
+  SQUAD=setup.gender==='men'?MEN_SQUAD:WOMEN_SQUAD;
+  document.getElementById('preMatch').style.display='none';
+  document.getElementById('mainApp').classList.add('active');
+  const we=WEATHER_EFFECTS[setup.weather];
+  document.getElementById('hbGender').textContent=(setup.gender==='men'?'👨':'👩')+' '+(setup.gender==='men'?"Men's":"Women's");
+  document.getElementById('hbWeather').textContent=we.emoji+' '+setup.weather;
+  document.getElementById('hbDiff').textContent=setup.difficulty;
+  document.getElementById('weatherDisplay').innerHTML=we.emoji+' '+setup.weather;
+  document.getElementById('homeTeamName').textContent=setup.gender==='men'?'Your XI':'Your XI';
+  document.getElementById('awayTeamName').textContent=setup.gender==='men'?'Rivals FC':'Rivals WFC';
+  renderAll();
+}
+
+// ── SILHOUETTE SVG ────────────────────────────────────────────────────────────
+function playerSVG(team,gender){
+  const fill=team==='home'?'#e8f020':'#ff4d4d';
+  const dark=team==='home'?'#8a9000':'#aa2020';
+  if(gender==='women'){
+    return `<svg class="token-svg" viewBox="0 0 28 28"><circle cx="14" cy="7" r="4.5" fill="${fill}"/><path d="M8 28 Q9 18 14 16 Q19 18 20 28Z" fill="${fill}"/><path d="M6 13 Q8 10 14 10 Q20 10 22 13 L20 20 Q14 18 8 20Z" fill="${fill}"/><path d="M8 18 L6 26" stroke="${dark}" stroke-width="2" stroke-linecap="round"/><path d="M20 18 L22 26" stroke="${dark}" stroke-width="2" stroke-linecap="round"/></svg>`;
+  }
+  return `<svg class="token-svg" viewBox="0 0 28 28"><circle cx="14" cy="7" r="4.5" fill="${fill}"/><path d="M8 28 L9 19 L14 17 L19 19 L20 28Z" fill="${fill}"/><path d="M6 12 Q8 9 14 9 Q20 9 22 12 L21 20 Q14 18 7 20Z" fill="${fill}"/><path d="M8 19 L5 27" stroke="${dark}" stroke-width="2.2" stroke-linecap="round"/><path d="M20 19 L23 27" stroke="${dark}" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+}
+
+// ── POSITIONS ─────────────────────────────────────────────────────────────────
+function getPositions(formation,W=308,H=472){
+  const{lines}=FORMATIONS[formation];const pos=[];
+  lines.forEach((count,li)=>{
+    const yFrac=li===0?0.91:li===lines.length-1?0.10:0.91-(li/(lines.length-1))*0.81;
+    for(let i=0;i<count;i++){
+      const xFrac=count===1?0.5:0.1+(i/(count-1))*0.8;
+      pos.push({x:W*xFrac,y:H*yFrac});
+    }
+  });
+  return pos;
+}
+function getAwayPos(W=308,H=472){return getPositions('4-4-2',W,H).map(p=>({x:p.x,y:H-p.y}));}
+function getLineIdx(idx){
+  const{lines}=FORMATIONS[state.formation];let acc=0;
+  for(let li=0;li<lines.length;li++){if(idx<acc+lines[li])return li;acc+=lines[li];}
+  return lines.length-1;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll(){renderFormGrid();renderTactics();renderSquad();renderPitch();}
+function renderFormGrid(){
+  document.getElementById('formationGrid').innerHTML=Object.keys(FORMATIONS).map(f=>
+    `<button class="formation-btn ${f===state.formation?'selected':''}" onclick="selectFormation('${f}')">${f}</button>`
+  ).join('');
+}
+function renderTactics(){
+  const T={style:{opts:['Possession','Counter','Direct','Balanced']},mentality:{opts:['Attacking','Neutral','Defensive']},pressing:{opts:['High Press','Mid Block','Low Block']}};
+  Object.entries(T).forEach(([key,{opts}])=>{
+    document.getElementById(key+'Opts').innerHTML=opts.map(o=>
+      `<button class="tactic-btn ${state[key]===o?'selected':''}" onclick="selectTactic('${key}','${o}')">${o}</button>`
+    ).join('');
+  });
+}
+function renderSquad(){
+  const total=FORMATIONS[state.formation].lines.reduce((a,b)=>a+b,0);
+  const onP=SQUAD.slice(0,total).map(p=>p.num);
+  document.getElementById('squadList').innerHTML=SQUAD.map(p=>
+    `<div class="player-row ${onP.includes(p.num)?'on-pitch':''}">
+      <div class="player-num">${p.num}</div>
+      <div class="player-info"><div class="player-name">${p.name}</div><div class="player-pos">${p.pos}</div></div>
+      <div class="player-rating">${p.rating}</div>
+    </div>`
+  ).join('');
+}
+function renderPitch(){
+  const container=document.getElementById('playerTokens');
+  container.innerHTML='';tokenEls=[];
+  const total=FORMATIONS[state.formation].lines.reduce((a,b)=>a+b,0);
+  const homePlayers=SQUAD.slice(0,total);
+  const basePos=getPositions(state.formation);
+  const awayPos=getAwayPos();
+  const awayAbbr=['GK','RB','CB','CB','LB','RM','CM','CM','LM','RW','ST'];
+  const g=setup.gender;
+  homePlayers.forEach((p,i)=>{
+    const t=document.createElement('div');
+    t.className='player-token token-home';
+    t.style.cssText=`left:${basePos[i].x}px;top:${basePos[i].y}px;`;
+    t.innerHTML=playerSVG('home',g)+`<div class="token-label">${p.num}</div>`;
+    container.appendChild(t);
+    tokenEls.push({el:t,base:{...basePos[i]},cur:{...basePos[i]},team:'home',lineIdx:getLineIdx(i),isGK:i===0});
+  });
+  awayPos.forEach((pos,i)=>{
+    if(i>=11)return;
+    const t=document.createElement('div');
+    t.className='player-token token-away';
+    t.style.cssText=`left:${pos.x}px;top:${pos.y}px;`;
+    t.innerHTML=playerSVG('away',g)+`<div class="token-label">${i+1}</div>`;
+    container.appendChild(t);
+    tokenEls.push({el:t,base:{...pos},cur:{...pos},team:'away',lineIdx:i===0?3:i<5?2:i<9?1:0,isGK:i===0});
+  });
+}
+
+// ── BALL ANIMATION ────────────────────────────────────────────────────────────
+function moveBallTo(x,y){
+  ballTarget={x,y};
+  const el=document.getElementById('ballEl');
+  el.style.left=x+'px'; el.style.top=y+'px';
+}
+function moveBallToPlayer(idx){
+  if(idx<0||idx>=tokenEls.length)return;
+  const tok=tokenEls[idx];
+  moveBallTo(tok.cur.x,tok.cur.y);
+}
+function moveBallRandom(team){
+  const teamToks=tokenEls.filter(t=>t.team===team&&!t.isGK);
+  if(!teamToks.length)return;
+  const t=teamToks[Math.floor(Math.random()*teamToks.length)];
+  moveBallTo(t.cur.x+(Math.random()-.5)*20,t.cur.y+(Math.random()-.5)*20);
+}
+
+// ── PLAYER ANIMATION ─────────────────────────────────────────────────────────
+function getTarget(tok,phase){
+  const{base,team,lineIdx,isGK}=tok;
+  if(isGK)return{...base};
+  let dy=0,dx=0,sc=7;
+  if(team==='home'){
+    if(phase==='home-attack'){dy=lineIdx===1?-18:lineIdx===2?-32:lineIdx>=3?-50:0;dx=(Math.random()-.5)*18;sc=10;}
+    else if(phase==='away-attack'){dy=lineIdx===1?14:lineIdx===2?7:lineIdx>=3?3:0;sc=5;}
+    else if(phase==='home-danger'){dy=lineIdx===1?-6:lineIdx===2?-14:lineIdx>=3?-24:0;sc=9;}
+    else if(phase==='build-up'){dy=lineIdx===2?(Math.random()-.5)*12:0;dx=(Math.random()-.5)*14;sc=8;}
+  }else{
+    if(phase==='away-attack'){dy=lineIdx===1?18:lineIdx===2?32:lineIdx>=3?50:0;dx=(Math.random()-.5)*18;sc=10;}
+    else if(phase==='home-attack'){dy=lineIdx===1?-14:lineIdx===2?-7:lineIdx>=3?-3:0;sc=5;}
+    else if(phase==='build-up'){dy=0;dx=(Math.random()-.5)*14;sc=8;}
+  }
+  return{x:base.x+dx+(Math.random()-.5)*sc*2,y:Math.max(14,Math.min(458,base.y+dy+(Math.random()-.5)*sc*2))};
+}
+function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function startFluid(){
+  animTargets=tokenEls.map(t=>getTarget(t,animPhase));
+  animStarts=tokenEls.map(t=>({...t.cur}));
+  animProg=0;animDur=50+Math.random()*35;
+}
+function animLoop(){
+  animProg++;
+  const t=ease(Math.min(animProg/animDur,1));
+  tokenEls.forEach((tok,i)=>{
+    const s=animStarts[i],tgt=animTargets[i];
+    tok.cur.x=s.x+(tgt.x-s.x)*t;
+    tok.cur.y=s.y+(tgt.y-s.y)*t;
+    tok.el.style.left=tok.cur.x+'px';
+    tok.el.style.top=tok.cur.y+'px';
+  });
+  if(animProg>=animDur+12)startFluid();
+  animFrame=requestAnimationFrame(animLoop);
+}
+function stopAnim(){
+  if(animFrame)cancelAnimationFrame(animFrame);animFrame=null;
+  tokenEls.forEach(tok=>{
+    tok.cur={...tok.base};
+    tok.el.style.transition='left .7s ease,top .7s ease';
+    tok.el.style.left=tok.base.x+'px';tok.el.style.top=tok.base.y+'px';
+  });
+  setTimeout(()=>tokenEls.forEach(tok=>tok.el.style.transition=''),800);
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function selectFormation(f){state.formation=f;renderFormGrid();renderSquad();renderPitch();}
+function selectTactic(key,val){state[key]=val;renderTactics();}
+function htSelect(key,val){state[key]=val;renderHTOpts();}
+function switchTab(tab){
+  ['match','analysis'].forEach(t=>{
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active',t===tab);
+    document.getElementById(t+'View').classList.toggle('active',t===tab);
+    document.getElementById(t+'View').classList.toggle('hidden',t!==tab);
+  });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function pickPlayer(){return pick(SQUAD.slice(0,11)).name.split(' ')[0];}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function calcStrength(f,st,m,pr){
+  const avg=SQUAD.slice(0,11).reduce((s,p)=>s+p.rating,0)/11;
+  let b=0;
+  if(st==='Possession')b+=1;if(m==='Attacking')b+=2;if(m==='Defensive')b-=1;if(pr==='High Press')b+=1.5;
+  const fb={'4-3-3':1,'4-4-2':0,'3-5-2':1.5,'4-2-3-1':2,'5-3-2':-.5,'4-1-4-1':.5};
+  return avg+(fb[f]||0)+b+WEATHER_EFFECTS[setup.weather].mod;
+}
+
+// ── COMMENTARY LINES ──────────────────────────────────────────────────────────
+const C={
+  kickoff:["Kick off! We're underway.","The whistle blows — let's go!","And we're off at the ground today."],
+  buildup:["{p} receives it deep and switches play.","{p} lays it off simply — the team recycling possession.","Short passing sequence — building patiently from the back.","{p} wins it in midfield and drives forward.","{p} plays it wide to relieve some pressure.","Good ball retention — the team keeping their shape.","{p} steps into space in the half-turn.","{p} finds a pocket of space between the lines."],
+  attack:["{p} drives at the defence!","{p} threads a through ball — this is dangerous!","One-two between {p} and a teammate — slick!","{p} cuts inside from the right wing.","The home side building momentum here.","{p} ghosts in behind — keeper alert!","{p} with pace in behind — the defender just scrambles back.",],
+  danger:["{p} blazes over from distance!","{p} curls one just wide of the post!","Corner won — the defence appeals in vain.","{p} offside — well caught by the line.","Keeper saves well at the near post!","{p} tries his luck — comfortable for the keeper.","{p} hits the crossbar! So close!","Referee waves play on — no foul.","VAR check — play continues."],
+  goal:["⚽ GOAL! {p} slots it clinically! {score}","⚽ GET IN! {p} with a magnificent finish! {score}","⚽ {p} smashes it home — unstoppable! {score}","⚽ Brilliant movement — {p} makes no mistake! {score}","⚽ {p} heads it in at the back post! {score}","⚽ What a strike from {p}! {score}"],
+  awayGoal:["⚽ Rivals score against the run of play. {score}","⚽ The away side hit them on the break. {score}","⚽ A sucker punch — they've nicked one. {score}","⚽ Defensive error exploited — {score}","⚽ The keeper beaten at his near post. {score}"],
+  halftime:["Half time. The teams head to the tunnel.","The referee blows for half time.","A chance to regroup, gaffer.","15 minutes to make your changes."],
+  fulltime:["Full time! The match is over.","The final whistle — it's done.","And that is the end of the match.","The referee brings proceedings to a close."],
+  neutral:["Not much doing at the moment.","Both sides cancelling each other out.","A real midfield tussle developing here.","Play is slowing down — tired legs showing.","The crowd growing restless as the game drifts."],
+  weather:{
+    'Heavy Rain':["The conditions are awful — the ball is skidding everywhere.","Another mis-control in the mud — tough going out there."],
+    'Snow':["Tricky footing on the snowy surface.","{p} nearly loses the ball in these conditions."],
+    'Wind':["The wind affecting that long ball — blew right out of play.","Difficult to play over the top in these gusty conditions."],
+  },
+};
+
+// ── SIMULATION ────────────────────────────────────────────────────────────────
+async function startSimulation(){
+  if(state.simulating)return;
+  state.simulating=true;
+  Object.assign(state,{homeScore:0,awayScore:0,htHomeScore:0,htAwayScore:0,htHomeChances:0,htAwayChances:0,matchEvents:[],momentumData:[],selectedSubs:[],appliedSubs:[]});
+  document.getElementById('simBtn').disabled=true;
+  document.getElementById('homeScore').textContent='0';document.getElementById('awayScore').textContent='0';
+  document.getElementById('commentaryFeed').innerHTML='';
+  document.getElementById('tabAnalysis').disabled=true;
+  ['posH','posA','shotsH','shotsA','cornersH','cornersA'].forEach(id=>document.getElementById(id).textContent='—');
+
+  tokenEls.forEach(t=>t.el.style.transition='');
+  startFluid();animFrame=requestAnimationFrame(animLoop);
+  addComment("1'",pick(C.kickoff),'info');
+
+  const str1=calcStrength(state.formation,state.style,state.mentality,state.pressing);
+  const awayStr=DIFF_STRENGTH[setup.difficulty];
+  const evs1=generateHalf(str1/(str1+awayStr),1,44,0,0);
+  for(const ev of evs1){
+    await sleep(500+Math.random()*550);
+    if(!state.simulating)break;
+    await processEvent(ev);
+  }
+  state.htHomeScore=state.homeScore;state.htAwayScore=state.awayScore;
+  stopAnim();
+  await sleep(400);
+  addComment("45'",pick(C.halftime),'info');
+  await sleep(700);
+  showHT();
+}
+
+async function resumeSecondHalf(){
+  hideHT();
+  await sleep(300);
+  renderPitch();
+  startFluid();animFrame=requestAnimationFrame(animLoop);
+  addComment("46'","Second half underway — new instructions applied.",'info');
+  const str2=calcStrength(state.formation,state.style,state.mentality,state.pressing);
+  const awayStr=DIFF_STRENGTH[setup.difficulty];
+  const evs2=generateHalf(str2/(str2+awayStr),46,90,state.homeScore,state.awayScore);
+  for(const ev of evs2){
+    await sleep(480+Math.random()*560);
+    if(!state.simulating)break;
+    await processEvent(ev);
+  }
+  stopAnim();
+  await sleep(400);
+  addComment("90'",pick(C.fulltime),'info');
+  await sleep(800);
+  finishMatch();
+}
+
+function generateHalf(homeFac,startMin,endMin,hG,aG){
+  const evs=[];
+  // More events for longer simulation
+  const totalMins=endMin-startMin;
+  const steps=Math.round(totalMins/3.5);
+  for(let s=0;s<steps;s++){
+    const min=Math.round(startMin+s*(totalMins/steps)+(Math.random()*2));
+    if(min>=endMin)continue;
+    const r=Math.random();
+    const weatherMod=WEATHER_EFFECTS[setup.weather].mod;
+    if(r<0.15*homeFac*1.3){
+      if(Math.random()<(0.32+weatherMod*.02)*homeFac){hG++;evs.push({type:'goal',team:'home',min,hG,aG,homeGoal:true});}
+      else evs.push({type:'chance',team:'home',min,hG,aG});
+    }else if(r<0.28){
+      if(Math.random()<(0.28+weatherMod*.02)*(1-homeFac+0.42)){aG++;evs.push({type:'goal',team:'away',min,hG,aG,awayGoal:true});}
+      else evs.push({type:'chance',team:'away',min,hG,aG});
+    }else if(r<0.5){
+      evs.push({type:'attack',team:'home',min,hG,aG});
+    }else if(r<0.62){
+      evs.push({type:'attack',team:'away',min,hG,aG});
+    }else{
+      evs.push({type:'buildup',team:Math.random()>.45?'home':'away',min,hG,aG});
+    }
+  }
+  return evs;
+}
+
+async function processEvent(ev){
+  const{type,team,min,hG,aG,homeGoal,awayGoal}=ev;
+  document.getElementById('matchClock').textContent=min+"'";
+  state.matchEvents.push(ev);
+
+  // Weather interjection
+  const wc=C.weather[setup.weather];
+  if(wc&&Math.random()<.12){
+    await sleep(120);
+    addComment(min+"'",pick(wc).replace('{p}',pickPlayer()),'info');
+    return;
+  }
+
+  if(homeGoal){
+    state.homeScore=hG;state.awayScore=aG;
+    document.getElementById('homeScore').textContent=hG;
+    animPhase='home-attack';
+    moveBallTo(154+( Math.random()-.5)*30,60+Math.random()*20);
+    addComment(min+"'",pick(C.goal).replace('{p}',pickPlayer()).replace('{score}',`(${hG}–${aG})`),'goal');
+  }else if(awayGoal){
+    state.homeScore=hG;state.awayScore=aG;
+    document.getElementById('awayScore').textContent=aG;
+    animPhase='away-attack';
+    moveBallTo(154+(Math.random()-.5)*30,410+Math.random()*20);
+    addComment(min+"'",pick(C.awayGoal).replace('{score}',`(${hG}–${aG})`),'danger');
+  }else if(type==='chance'&&team==='home'){
+    state.htHomeChances++;animPhase='home-danger';
+    moveBallTo(154+(Math.random()-.5)*60,55+Math.random()*40);
+    addComment(min+"'",pick(C.danger).replace('{p}',pickPlayer()).replace('{team}','home side'),'danger');
+  }else if(type==='chance'&&team==='away'){
+    state.htAwayChances++;animPhase='away-attack';
+    moveBallTo(154+(Math.random()-.5)*60,390+Math.random()*40);
+    addComment(min+"'",pick(C.attack).replace('{p}','Rivals').replace('{team}','away side'),'info');
+  }else if(type==='attack'&&team==='home'){
+    animPhase='home-attack';
+    moveBallRandom('home');
+    addComment(min+"'",pick(C.attack).replace('{p}',pickPlayer()).replace('{team}','home side'),'info');
+  }else if(type==='attack'&&team==='away'){
+    animPhase='away-attack';
+    moveBallRandom('away');
+    addComment(min+"'",pick(C.attack).replace('{p}','Rivals').replace('{team}','away side'),'info');
+  }else{
+    animPhase=team==='home'?'build-up':'neutral';
+    moveBallRandom(team);
+    addComment(min+"'",pick(team==='home'?C.buildup:C.neutral).replace('{p}',pickPlayer()),'info');
+  }
+  state.momentumData.push({min,val:homeGoal||team==='home'?0.60+Math.random()*.28:0.40-Math.random()*.18});
+}
+
+function addComment(time,text,type){
+  const feed=document.getElementById('commentaryFeed');
+  feed.querySelector('.empty-commentary')?.remove();
+  const d=document.createElement('div');
+  d.className='commentary-item';
+  d.innerHTML=`<span class="c-time">${time}</span><span class="c-text ${type}">${text}</span>`;
+  feed.appendChild(d);feed.scrollTop=feed.scrollHeight;
+}
+
+// ── HALF TIME ─────────────────────────────────────────────────────────────────
+function genHTRec(){
+  const h=state.htHomeScore,a=state.htAwayScore,hCh=state.htHomeChances,aCh=state.htAwayChances;
+  const rec={formation:state.formation,mentality:state.mentality,pressing:state.pressing};const ls=[];
+  if(h<a){
+    ls.push(`You're ${a-h} goal(s) down — time to be brave.`);
+    if(state.mentality!=='Attacking'){rec.mentality='Attacking';ls.push(`Switch to Attacking — push numbers forward and give the forwards freedom.`);}
+    if(state.pressing==='Low Block'){rec.pressing='High Press';ls.push(`High Press will disrupt their build-up and win the ball higher up the pitch.`);}
+  }else if(h>a){
+    ls.push(`Solid first half — protect the lead.`);
+    if(state.mentality==='Attacking'){rec.mentality='Neutral';ls.push(`Drop to Neutral mentality — keep shape and exploit the space they'll leave chasing the game.`);}
+  }else ls.push(`Even game — one moment will decide it.`);
+  if(aCh>hCh+1){
+    ls.push(`Rivals creating more chances — midfield being bypassed too easily.`);
+    if(state.formation!=='4-2-3-1'){rec.formation='4-2-3-1';ls.push(`4-2-3-1 adds a double pivot to win the midfield battle.`);}
+  }else if(hCh>aCh+1) ls.push(`Your attacking play has been sharp — keep it up.`);
+  if(state.pressing==='High Press'&&aCh>2){ls.push(`High Press leaving gaps in behind.`);rec.pressing='Mid Block';ls.push(`Drop to Mid Block to stay compact.`);}
+  if(setup.weather==='Heavy Rain'||setup.weather==='Snow'){ls.push(`In these conditions, keep it simple — avoid long balls and hold possession.`);}
+  if(!ls.length)ls.push(`Solid performance. No major changes needed — maintain structure and keep pressing.`);
+  rec.text=ls.join(' ');return rec;
+}
+
+function renderHTOpts(){
+  const rec=state.htRec;
+  document.getElementById('htFormation').innerHTML=Object.keys(FORMATIONS).map(f=>{
+    const isRec=rec.formation===f&&state.formation!==f;
+    return `<button class="ht-opt ${state.formation===f?'selected':''} ${isRec?'rec':''}" onclick="htSelect('formation','${f}')">${f}${isRec?' ★':''}</button>`;
+  }).join('');
+  [{key:'mentality',id:'htMentality'},{key:'pressing',id:'htPressing'}].forEach(({key,id})=>{
+    const opts={mentality:['Attacking','Neutral','Defensive'],pressing:['High Press','Mid Block','Low Block']};
+    document.getElementById(id).innerHTML=opts[key].map(o=>{
+      const isRec=rec[key]===o&&state[key]!==o;
+      return `<button class="ht-opt ${state[key]===o?'selected':''} ${isRec?'rec':''}" onclick="htSelect('${key}','${o}')">${o}${isRec?' ★':''}</button>`;
+    }).join('');
+  });
+  // Subs from bench
+  const total=FORMATIONS[state.formation].lines.reduce((a,b)=>a+b,0);
+  const bench=SQUAD.slice(total);
+  document.getElementById('subsGrid').innerHTML=bench.slice(0,6).map(p=>`
+    <div class="sub-slot ${state.selectedSubs.includes(p.num)?'selected':''}" onclick="toggleSub(${p.num})">
+      <div class="sn">${p.name}</div>
+      <div class="sp">${p.pos} &nbsp;<span class="sr">${p.rating}</span></div>
+    </div>`).join('');
+}
+function toggleSub(num){
+  if(state.selectedSubs.includes(num)){state.selectedSubs=state.selectedSubs.filter(n=>n!==num);}
+  else if(state.selectedSubs.length<2){state.selectedSubs.push(num);}
+  renderHTOpts();
+}
+function showHT(){
+  document.getElementById('htScore').textContent=`${state.htHomeScore} – ${state.htAwayScore}  ·  Your XI vs ${setup.gender==='men'?'Rivals FC':'Rivals WFC'}`;
+  state.htRec=genHTRec();
+  document.getElementById('htRecText').textContent=state.htRec.text;
+  renderHTOpts();
+  document.getElementById('htOverlay').classList.add('show');
+}
+function hideHT(){document.getElementById('htOverlay').classList.remove('show');}
+
+// ── FINISH ────────────────────────────────────────────────────────────────────
+function finishMatch(){
+  state.simulating=false;
+  document.getElementById('simBtn').disabled=false;
+  document.getElementById('matchClock').textContent='Full Time';
+  const h=state.homeScore,a=state.awayScore;
+  const str=calcStrength(state.formation,state.style,state.mentality,state.pressing);
+  const awayStr=DIFF_STRENGTH[setup.difficulty];
+  const hPos=Math.round(40+str/(str+awayStr)*22);
+  const aPos=100-hPos;
+  const allEv=state.matchEvents;
+  const hShots=allEv.filter(e=>e.team==='home'||e.homeGoal).length;
+  const aShots=allEv.filter(e=>e.team==='away'||e.awayGoal).length;
+  const hCorners=Math.round(2+hShots*.55);const aCorners=Math.round(2+aShots*.45);
+  state.finalStats={hPos,aPos,hShots,aShots,hCorners,aCorners,homeScore:h,awayScore:a};
+  const sT=hShots+aShots||1,cT=hCorners+aCorners||1;
+  document.getElementById('posH').textContent=hPos+'%';document.getElementById('posA').textContent=aPos+'%';
+  document.getElementById('posBarH').style.width=hPos+'%';document.getElementById('posBarA').style.width=aPos+'%';
+  document.getElementById('shotsH').textContent=hShots;document.getElementById('shotsA').textContent=aShots;
+  document.getElementById('shotsBarH').style.width=(hShots/sT*100)+'%';document.getElementById('shotsBarA').style.width=(aShots/sT*100)+'%';
+  document.getElementById('cornersH').textContent=hCorners;document.getElementById('cornersA').textContent=aCorners;
+  document.getElementById('cornersBarH').style.width=(hCorners/cT*100)+'%';document.getElementById('cornersBarA').style.width=(aCorners/cT*100)+'%';
+  genRatings(h,a);buildAnalysis();
+  document.getElementById('tabAnalysis').disabled=false;
+  setTimeout(()=>switchTab('analysis'),1800);
+}
+function genRatings(h,a){
+  const total=FORMATIONS[state.formation].lines.reduce((x,y)=>x+y,0);
+  const base=h>a?6.9:h===a?6.2:5.5;
+  SQUAD.slice(0,total).forEach(p=>{
+    const v=(Math.random()-.5)*2.6,bonus=p.pos==='ST'&&h>0?.5:p.pos==='GK'&&a===0?.9:0;
+    state.playerRatings[p.num]=+Math.min(9.9,Math.max(4.2,base+v+bonus+(p.rating-75)*.04)).toFixed(1);
+  });
+}
+
+// ── ANALYSIS ─────────────────────────────────────────────────────────────────
+function buildAnalysis(){
+  const{hPos,aPos,hShots,aShots,hCorners,aCorners,homeScore,awayScore}=state.finalStats;
+  const scores=calcScores();
+  const body=document.getElementById('analysisBody');
+  body.innerHTML=
+    gradeCard(scores)+
+    `<div class="card"><div class="card-title">Match Momentum</div><div class="momentum-canvas-wrap"><canvas id="mCanvas" height="70"></canvas></div><div class="momentum-legend"><div class="m-leg"><div class="m-dot" style="background:var(--home)"></div>Your XI</div><div class="m-leg"><div class="m-dot" style="background:var(--away)"></div>${setup.gender==='men'?'Rivals FC':'Rivals WFC'}</div></div></div>`+
+    heatmapCard(hPos)+
+    ratingsCard()+
+    keyMomentsCard()+
+    reportCard(homeScore,awayScore,hPos,hShots,aShots);
+  setTimeout(()=>drawMomentum(),90);
+}
+function calcScores(){
+  const{hPos,hShots,aShots}=state.finalStats;const h=state.homeScore,a=state.awayScore;
+  return{
+    Attack:Math.min(100,Math.round(36+hShots*5+(h*12))),
+    Defense:Math.min(100,Math.round(78-(aShots*4)-(a*10))),
+    Pressing:Math.min(100,Math.round((state.pressing==='High Press'?70:state.pressing==='Mid Block'?62:50)+(Math.random()*10|0))),
+    Possession:Math.min(100,Math.round(hPos*1.12)),
+    Structure:Math.min(100,Math.round(54+(Math.random()*26|0))),
+  };
+}
+function gradeFrom(sc){
+  const avg=Object.values(sc).reduce((a,b)=>a+b,0)/5;
+  return avg>=80?'A':avg>=68?'B':avg>=55?'C':avg>=42?'D':'F';
+}
+const COLORS={Attack:'#e8f020',Defense:'#4ade80',Pressing:'#38bdf8',Possession:'#a78bfa',Structure:'#fb923c'};
+function gradeCard(sc){
+  const g=gradeFrom(sc);
+  const desc={A:'Exceptional tactical display.',B:'Strong performance with good discipline.',C:'Decent showing — room to improve.',D:'Struggled to impose the game plan.',F:'Tactically outclassed today.'};
+  const rows=Object.entries(sc).map(([k,v])=>`<div class="grade-row"><div class="grade-lbl">${k}</div><div class="grade-bar-wrap"><div class="grade-bar-fill" style="width:${v}%;background:${COLORS[k]}"></div></div><div class="grade-val">${v}</div></div>`).join('');
+  return `<div class="card"><div class="card-title">Tactical Shape Grade</div><div class="overall-grade"><div class="grade-letter ${g}">${g}</div><div class="grade-desc">${desc[g]}</div></div>${rows}</div>`;
+}
+function heatmapCard(hPos){
+  const zones=[{l:'Att. Left',b:hPos*.96},{l:'Att. Right',b:hPos*.9},{l:'Mid Left',b:hPos*.75},{l:'Mid Right',b:hPos*.72},{l:'Def. Left',b:100-hPos*.88},{l:'Def. Right',b:100-hPos*.92}];
+  const html=zones.map(z=>{const i=Math.min(1,z.b/100+Math.random()*.17);return `<div class="heat-zone" style="background:rgba(232,240,32,${(0.1+i*.72).toFixed(2)})">${Math.round(i*100)}%</div>`;}).join('');
+  return `<div class="card"><div class="card-title">Activity Heatmap · Your XI</div><div class="heatmap-pitch">${html}</div><div class="heatmap-note">Brighter = higher activity</div></div>`;
+}
+function ratingsCard(){
+  const total=FORMATIONS[state.formation].lines.reduce((x,y)=>x+y,0);
+  const rows=SQUAD.slice(0,total).map(p=>{
+    const r=state.playerRatings[p.num]||6.0;
+    const cls=r>=7.5?'high':r>=6.0?'mid':'low';
+    return `<div class="rating-row"><div class="r-num">${p.num}</div><div class="r-name">${p.name}</div><div class="r-pos">${p.pos}</div><div class="r-score ${cls}">${r.toFixed(1)}</div></div>`;
+  }).join('');
+  return `<div class="card"><div class="card-title">Player Ratings</div>${rows}</div>`;
+}
+function keyMomentsCard(){
+  const goals=state.matchEvents.filter(e=>e.homeGoal||e.awayGoal);
+  const peaks=state.matchEvents.filter(e=>e.type==='chance').slice(0,2);
+  const moments=[...goals,...peaks].sort((a,b)=>a.min-b.min).slice(0,5);
+  if(!moments.length)return `<div class="card"><div class="card-title">Key Moments</div><div style="font-size:11px;color:var(--muted);padding:8px 0">No major moments recorded.</div></div>`;
+  const items=moments.map(ev=>{
+    const txt=ev.homeGoal?`Goal for Your XI — ${pickPlayer()} finishes clinically. ${state.formation} overload created the chance.`:ev.awayGoal?`Rivals score — defensive shape exposed in behind the press.`:ev.team==='home'?`Good chance created — wide play stretching the back line.`:`Rivals chance — midfield bypassed with a direct pass.`;
+    return `<div class="moment-item"><div class="moment-min">${ev.min}'</div><div class="moment-text">${txt}</div></div>`;
+  }).join('');
+  return `<div class="card"><div class="card-title">Key Moments</div>${items}</div>`;
+}
+function reportCard(h,a,hPos,hShots,aShots){
+  const res=h>a?'win':h===a?'draw':'loss';
+  const f=state.formation,m=state.mentality.toLowerCase(),pr=state.pressing.toLowerCase();
+  const we=WEATHER_EFFECTS[setup.weather];
+  const wNote=we.mod<-0.5?` The ${setup.weather.toLowerCase()} conditions clearly had an impact — the team adapted reasonably well but possession was harder to maintain.`:'';
+  const diffNote=setup.difficulty==='World Class'?` Facing world class opposition makes this result all the more significant.`:setup.difficulty==='Hard'?' Against a tough opponent, the performance deserves credit.':'';
+  const ps={
+    win:[`Your ${f} setup delivered today. The ${m} mentality gave the side a clear identity — ${hPos}% possession reflects that. Movement off the ball was purposeful and your attackers found pockets consistently.${wNote}`,
+         `Ball movement was confident through all three thirds. The ${pr} structure disrupted the opposition's build-up effectively, though there were moments where gaps appeared when the press was beaten. Refining the trigger zones will fix this.${diffNote}`,
+         `Continue with this shape. For the next match, focus on sharpening transitions — your wide players were excellent and should get more license to underlap and create 2v1s in the final third.`],
+    draw:[`A point from a competitive match, but this side can produce more. Your ${f} was tidy in possession — ${hPos}% — but the final pass was missing too often. The ${m} mentality created hesitancy in the final third.${wNote}`,
+          `Off the ball, the ${pr} was inconsistently applied. When triggered correctly it created turnovers and led to your best moments. When it broke down, space was exploited in behind. A more structured press trigger would help.`,
+          `Recommendation: push your wingers higher, drop the holding mid slightly for cover. Switch to Attacking mentality from the 60th minute when chasing. A 4-2-3-1 could offer more balance next time.${diffNote}`],
+    loss:[`A difficult day. The ${f} was sound on paper but the opposition found the gaps too regularly. The ${m} mentality left the team caught between pressing and sitting — neither effective. Clearer defensive organisation is needed.${wNote}`,
+          `Off the ball the team was disjointed. The ${pr} left spaces in transitions that were exploited repeatedly. A disciplined mid-block approach would protect the defensive shape better until confidence returns.`,
+          `Next match priority: simplify. Win the shape back, then hit on the counter. Your attackers have quality — give them a platform. Securing the midfield battle first with a double pivot should be the focus.${diffNote}`],
+  };
+  const tags={win:['Wide overloads','High press wins','Clean transitions','Ball retention'],draw:['Press consistency','Final ball quality','Transition speed','Shape discipline'],loss:['Defensive compactness','Mid-block structure','Counter triggers','Midfield pivot']};
+  const pHTML=ps[res].map(t=>`<p>${t}</p>`).join('');
+  const tHTML=tags[res].map((t,i)=>`<span class="report-tag ${i<2?'key':''}">${t}</span>`).join('');
+  return `<div class="card accent-border"><div class="card-title">⚽ Gaffer's Coaching Report</div><div class="report-text">${pHTML}</div><div class="report-next"><div class="report-next-lbl">Focus Areas · Next Match</div>${tHTML}</div></div>`;
+}
+function drawMomentum(){
+  const c=document.getElementById('mCanvas');if(!c)return;
+  const W=c.offsetWidth||264,H=70;c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.12)';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.18)';ctx.font='8px DM Mono';ctx.fillText('HT',W/2+3,H-3);
+  const data=state.momentumData;if(data.length<2)return;
+  ctx.beginPath();
+  data.forEach((d,i)=>{const x=i/(data.length-1)*W,y=H-(d.val*H*.76+H*.12);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='rgba(232,240,32,.9)';ctx.lineWidth=2;ctx.stroke();
+  ctx.lineTo(W,H/2);ctx.lineTo(0,H/2);ctx.closePath();ctx.fillStyle='rgba(232,240,32,.06)';ctx.fill();
+  ctx.beginPath();
+  data.forEach((d,i)=>{const x=i/(data.length-1)*W,y=H-((1-d.val)*H*.76+H*.12);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='rgba(255,77,77,.65)';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+// INIT
+function checkPwd(){
+  const val=document.getElementById('pwdInput').value;
+  const err=document.getElementById('pwdError');
+  if(val==='143'){
+    document.getElementById('pwdScreen').style.display='none';
+  } else {
+    err.textContent='Incorrect code — try again';
+    const inp=document.getElementById('pwdInput');
+    inp.classList.remove('pwd-shake');
+    void inp.offsetWidth;
+    inp.classList.add('pwd-shake');
+    inp.value='';
+    setTimeout(()=>err.textContent='',2000);
+  }
+}
+renderAll();
+</script>
+</body>
+</html>
